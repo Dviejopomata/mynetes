@@ -14,7 +14,7 @@
 
 package main
 
-import "gitlab.nextagilesoft.com/saas2/core/cmd"
+import "github.com/Dviejopomata/mynetes/cmd"
 
 func main() {
 	cmd.Execute()

@@ -17,9 +17,9 @@ package cmd
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"gitlab.nextagilesoft.com/saas2/core/cmd/deploy"
-	"gitlab.nextagilesoft.com/saas2/core/cmd/serve"
-	"gitlab.nextagilesoft.com/saas2/core/log"
+	"github.com/Dviejopomata/mynetes/cmd/deploy"
+	"github.com/Dviejopomata/mynetes/cmd/serve"
+	"github.com/Dviejopomata/mynetes/log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -28,7 +28,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "na-cli",
+	Use:   "mynetes",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:

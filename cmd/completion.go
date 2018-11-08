@@ -28,15 +28,15 @@ var (
 )
 
 const completionDesc = `
-Generate autocompletions script for Na-cli for the specified shell (bash).
+Generate autocompletions script for mynetes for the specified shell (bash).
 
 This command can generate shell autocompletions. e.g.
 
-	$ na-cli completion bash
+	$ mynetes completion bash
 
 Can be sourced as such
 
-	$ source <(na-cli completion bash)
+	$ source <(mynetes completion bash)
 `
 
 func runCompletionBash(out io.Writer, cmd *cobra.Command) error {

@@ -9,8 +9,8 @@ import (
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-password/password"
-	"gitlab.nextagilesoft.com/saas2/core/config"
-	"gitlab.nextagilesoft.com/saas2/core/log"
+	"github.com/Dviejopomata/mynetes/config"
+	"github.com/Dviejopomata/mynetes/log"
 	"io/ioutil"
 	"strings"
 )

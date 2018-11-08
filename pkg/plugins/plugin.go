@@ -2,7 +2,7 @@ package plugins
 
 import (
 	"github.com/minio/minio-go"
-	"gitlab.nextagilesoft.com/saas2/core/config"
+	"github.com/Dviejopomata/mynetes/config"
 )
 
 type ProvisionOptions struct {

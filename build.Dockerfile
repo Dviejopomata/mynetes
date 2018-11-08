@@ -2,7 +2,7 @@ FROM golang:1.10.3 as build-env
 
 RUN curl -fsSL -o /usr/bin/dep https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 && chmod +x /usr/bin/dep
 
-WORKDIR /go/src/gitlab.nextagilesoft.com/saas2/core
+WORKDIR /go/src/github.com/Dviejopomata/mynetes
 
 COPY Gopkg.toml Gopkg.lock ./
 COPY main.go ./
@@ -15,5 +15,5 @@ COPY scripts/crossbinary ./scripts/crossbinary
 RUN bash scripts/crossbinary
 
 FROM gcr.io/distroless/base
-COPY --from=build-env /go/src/gitlab.nextagilesoft.com/saas2/core/dist /dist
-CMD ["/dist/na-cli_linux-amd64"]
+COPY --from=build-env /go/src/github.com/Dviejopomata/mynetes/dist /dist
+CMD ["/dist/mynetes_linux-amd64"]

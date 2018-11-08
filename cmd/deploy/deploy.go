@@ -21,7 +21,7 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	errors2 "github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gitlab.nextagilesoft.com/saas2/core/config"
+	"github.com/Dviejopomata/mynetes/config"
 	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"

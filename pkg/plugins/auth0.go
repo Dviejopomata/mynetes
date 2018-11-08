@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
-	"gitlab.nextagilesoft.com/saas2/core/log"
+	"github.com/Dviejopomata/mynetes/log"
 	"io/ioutil"
 	"net/http"
 )
