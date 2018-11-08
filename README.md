@@ -82,8 +82,8 @@ environments:
     repository: git@github.com:Dviejopomata/easy-cdn.git#master
     type: Kubernetes
     domain: easy-cdn.example.com
-    cluster: animal
+    cluster: prod
     config: {}
-    env_variables: [[]
+    env_variables: []
 
 ```
