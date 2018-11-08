@@ -1,0 +1,45 @@
+{{- if .Values.service.disabled }}
+{{- else }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "base-chart.fullname" . }}
+{{- if .Values.service.annotations }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    app: {{ template "base-chart.name" . }}
+    chart: {{ template "base-chart.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+{{- if .Values.service.port }}
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+{{- end }}
+{{- if .Values.service.ports }}
+  {{- range $key, $value := .Values.service.ports }}
+    - port: {{$value}}
+      targetPort: {{$key}}
+      protocol: TCP
+      name: {{$key}}
+{{- end }}
+{{- end }}
+{{- if .Values.service.nodePorts }}
+  {{- range $key, $value := .Values.service.nodePorts }}
+    - port: {{$value.port}}
+      nodePort: {{$value.nodePort}}
+      protocol: TCP
+      name: {{$key}}
+{{- end }}
+{{- end }}
+
+  selector:
+    app: {{ template "base-chart.name" . }}
+    release: {{ .Release.Name }}
+{{- end }}

@@ -1,0 +1,40 @@
+stages:
+- build
+- deploy
+
+variables:
+  ARTIFACTS_DIR: dist
+  CONTAINER_NAME: saas2-cli-build
+
+  VERSION: "1.0"
+  LATEST_VERSION: "latest"
+  IMAGE_CLI: "${CI_REGISTRY_IMAGE}:${VERSION}"
+  IMAGE_CLI_LATEST: "${CI_REGISTRY_IMAGE}:latest"
+  IMAGE_BUILD: "${CI_REGISTRY_IMAGE}/cli:1.0"
+
+build-projectname:
+  tags:
+  - bare
+  stage: build
+  script:
+  - docker build --network host -f build.Dockerfile -t ${IMAGE_BUILD} .
+  - docker rm ${CONTAINER_NAME} -f || true
+  - docker create --name ${CONTAINER_NAME} ${IMAGE_BUILD}
+  - docker cp ${CONTAINER_NAME}:/dist $CI_PROJECT_DIR/$ARTIFACTS_DIR
+  - docker rm ${CONTAINER_NAME} -f
+  artifacts:
+    paths:
+    - ${CI_PROJECT_DIR}/${ARTIFACTS_DIR}
+    expire_in: 1 week
+
+push-image:
+  tags:
+  - bare
+  stage: build
+  script:
+  - env
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN docker.nextagilesoft.com
+  - docker build -f Dockerfile -t  ${IMAGE_CLI} .
+  - docker push ${IMAGE_CLI}
+  - docker tag ${IMAGE_CLI} ${IMAGE_CLI_LATEST}
+  - docker push ${IMAGE_CLI_LATEST}

@@ -1,0 +1,74 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "base-chart.fullname" . }}
+  labels:
+    app: {{ template "base-chart.name" . }}
+    chart: {{ template "base-chart.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "base-chart.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "base-chart.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+{{- if .Values.pullSecrets }}
+      imagePullSecrets:
+{{- range .Values.pullSecrets }}
+        - name: {{ . }}
+{{- end }}
+{{- end }}
+{{- if .Values.volumes }}
+      volumes:
+{{ toYaml .Values.volumes | indent 8 }}
+{{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+{{- if .Values.env }}
+          env:
+{{ toYaml .Values.env | indent 12 }}
+{{- end }}
+{{- if .Values.volumeMounts }}
+          volumeMounts:
+{{ toYaml .Values.volumeMounts | indent 12 }}
+{{- end }}
+          ports:
+          {{- range $key, $value := .Values.ports }}
+            - name: {{ $key | quote }}
+              containerPort: {{ $value }}
+              protocol: TCP
+          {{- end }}
+{{- if .Values.isLivenessDisabled }}
+{{- else }}
+          livenessProbe:
+            httpGet:
+              path: {{ default "/" .Values.liveness }}
+              port: http
+          readinessProbe:
+            httpGet:
+              path: {{ default "/" .Values.liveness }}
+              port: http
+{{- end }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
