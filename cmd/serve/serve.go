@@ -21,6 +21,12 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/Dviejopomata/mynetes/config"
+	"github.com/Dviejopomata/mynetes/log"
+	"github.com/Dviejopomata/mynetes/pkg/builders"
+	"github.com/Dviejopomata/mynetes/pkg/plugins"
+	"github.com/Dviejopomata/mynetes/pkg/progressbar"
+	"github.com/Dviejopomata/mynetes/pkg/utils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -35,12 +41,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/superwhiskers/yaml"
-	"github.com/Dviejopomata/mynetes/config"
-	"github.com/Dviejopomata/mynetes/log"
-	"github.com/Dviejopomata/mynetes/pkg/builders"
-	"github.com/Dviejopomata/mynetes/pkg/plugins"
-	"github.com/Dviejopomata/mynetes/pkg/progressbar"
-	"github.com/Dviejopomata/mynetes/pkg/utils"
 	"io"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
@@ -327,6 +327,11 @@ to quickly create a Cobra application.`,
 					c.AbortWithStatusJSON(http.StatusBadRequest, err)
 					return
 				}
+				onlyDependencies := false
+				onlyDependenciesStr := c.Query("only-dependencies")
+				if onlyDependenciesStr == "yes" {
+					onlyDependencies = true
+				}
 				appConfig := config.ApplicationYaml{}
 				err = yaml.Unmarshal(contents, &appConfig)
 				if err != nil {
@@ -433,6 +438,12 @@ to quickly create a Cobra application.`,
 					}
 					configUrl = presignedUrl.String()
 					configEnv.EnvVars = append(configEnv.EnvVars, config.EnvironmentVariable{Name: configEnvVariableName, Value: configUrl})
+				}
+				if onlyDependencies {
+					c.JSON(http.StatusOK, gin.H{
+						"message": fmt.Sprintf("Dependencies have been provisioned, the json url is %s", configUrl),
+					})
+					return
 				}
 				dockerAuth, ok := computedConfiguration.DockerAuths[configEnv.Cluster]
 				if !ok {
