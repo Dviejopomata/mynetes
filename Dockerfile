@@ -16,6 +16,5 @@ RUN go build -ldflags "-s -w" -o "mynetes" main.go
 FROM gcr.io/distroless/base:debug
 COPY --from=build-env /go/src/github.com/Dviejopomata/mynetes/mynetes /
 COPY --from=build-env /go/src/github.com/Dviejopomata/mynetes/charts /charts
-COPY --from=build-env /go/src/github.com/Dviejopomata/mynetes/config.yml /config.yml
 ENV GIN_MODE=release
 ENTRYPOINT ["/mynetes"]
