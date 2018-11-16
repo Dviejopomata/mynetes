@@ -4,7 +4,7 @@ RUN curl -fsSL -o /usr/bin/dep https://github.com/golang/dep/releases/download/v
 
 WORKDIR $GOPATH/src/github.com/Dviejopomata/mynetes
 
-COPY main.go config.yml Gopkg.toml Gopkg.lock ./
+COPY main.go Gopkg.toml Gopkg.lock ./
 COPY ./charts ./charts
 COPY ./cmd ./cmd
 COPY ./config ./config
