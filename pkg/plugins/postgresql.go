@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/Dviejopomata/mynetes/config"
+	"github.com/Dviejopomata/mynetes/log"
 	_ "github.com/lib/pq"
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-password/password"
-	"github.com/Dviejopomata/mynetes/config"
-	"github.com/Dviejopomata/mynetes/log"
 	"io/ioutil"
 	"strings"
 )
@@ -27,7 +27,8 @@ type PostgresqlPluginResponse struct {
 	Password string `json:"password"`
 }
 type PostgresqlOptions struct {
-	Version float64
+	Version    float64
+	Extensions []string
 }
 
 func (postgresqlPlugin) IsPrivate() bool {
@@ -127,6 +128,13 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 	contents, err := json.Marshal(response)
 	if err != nil {
 		return nil, err
+	}
+	for _, extension := range pgOptions.Extensions {
+		createExtensionSql := fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %s;", extension)
+		_, err = db.Query(createExtensionSql)
+		if err != nil {
+			return nil, err
+		}
 	}
 	_, err = minioClient.PutObject(o.ServerConfig.Minio.Bucket, objectName, bytes.NewReader(contents), int64(len(contents)), minio.PutObjectOptions{})
 	if err != nil {
