@@ -55,7 +55,14 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 	serverConfig := o.ServerConfig
 	data := o.Data
 	minioClient := o.MinioClient
+	pgConfig := o.ServerConfig.Postgresql
 	objectName := fmt.Sprintf("%s/%s/%s.json", yaml.App, env.Name, p.Name())
+	db := p.Db
+
+	pgOptions, err := mapToStruct(data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to transform interface %v to Postgresql options", data)
+	}
 	objectInfo, err := minioClient.StatObject(o.ServerConfig.Minio.Bucket, objectName, minio.StatObjectOptions{})
 	if err == nil {
 		object, err := minioClient.GetObject(o.ServerConfig.Minio.Bucket, objectInfo.Key, minio.GetObjectOptions{})
@@ -68,14 +75,22 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+		connStringPg := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", pgConfig.Host, pgConfig.Port, pgConfig.User, pgConfig.Password, response.Database)
+		db, err := sql.Open("postgres", connStringPg)
+
+		if err != nil {
+			return nil, err
+		}
+		for _, extension := range pgOptions.Extensions {
+			createExtensionSql := fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %s;", extension)
+			_, err = db.Query(createExtensionSql)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return response, nil
 	}
-	db := p.Db
 
-	pgOptions, err := mapToStruct(data)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to transform interface %v to Postgresql options", data)
-	}
 	log.Infof("Provisioning postgresql instance with version %d", pgOptions.Version)
 	postgresPwd, err := password.Generate(32, 10, 10, false, false)
 	if err != nil {
@@ -129,9 +144,15 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	connStringPg := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", pgConfig.Host, pgConfig.Port, pgConfig.User, pgConfig.Password, response.Database)
+	currDb, err := sql.Open("postgres", connStringPg)
+
+	if err != nil {
+		return nil, err
+	}
 	for _, extension := range pgOptions.Extensions {
 		createExtensionSql := fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %s;", extension)
-		_, err = db.Query(createExtensionSql)
+		_, err = currDb.Query(createExtensionSql)
 		if err != nil {
 			return nil, err
 		}
