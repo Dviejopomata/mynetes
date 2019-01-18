@@ -160,8 +160,9 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 		if err != nil {
 			return nil, err
 		}
+		applicationPort := 80
 		envVariables := []config.EnvironmentVariable{
-			{Name: "PORT", Value: "80"},
+			{Name: "PORT", Value: string(applicationPort)},
 			{Name: "APP_NAME", Value: appConfig.App},
 			{Name: "ENV_NAME", Value: env.Name},
 			{Name: "EXTERNAL_DOMAIN", Value: env.Domain},
@@ -176,7 +177,12 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 		if handler.Rewrite != "" {
 			annotations["nginx.ingress.kubernetes.io/rewrite-target"] = handler.Rewrite
 		}
-
+		deploymentAnnotations := map[string]string{}
+		if handler.MetricsPath != "" {
+			deploymentAnnotations["prometheus.io/scrape"] = "true"
+			deploymentAnnotations["prometheus.io/port"] = string(applicationPort)
+			deploymentAnnotations["prometheus.io/path"] = handler.MetricsPath
+		}
 		dockerOptions, ok := env.HandlerOptions[name]
 		if ok {
 			if err := mergo.Merge(&handler, dockerOptions); err != nil {
@@ -200,6 +206,7 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 			Dependencies: []*Dependency{},
 			Charts:       []*Chart{},
 			Values: map[string]interface{}{
+				"annotations":  deploymentAnnotations,
 				"pullSecrets":  []string{"registry"},
 				"replicaCount": replicas,
 				"ports": &map[string]interface{}{

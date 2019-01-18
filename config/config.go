@@ -56,7 +56,7 @@ type ElasticsearchConfig struct {
 
 type JaegerConfig struct {
 	Host string `yaml:"host"`
-	Port int  `yaml:"port"`
+	Port int    `yaml:"port"`
 }
 
 type Auth0Config struct {
@@ -86,6 +86,7 @@ type Handler struct {
 	NetworkMode string                  `yaml:"network_mode"`
 	File        string                  `yaml:"file,omitempty"`
 	Domain      string                  `yaml:"domain,omitempty"`
+	MetricsPath string                  `yaml:"metrics_path,omitempty"`
 	URL         string                  `yaml:"url,omitempty"`
 	Liveness    *string                 `yaml:"liveness,omitempty"`
 	Rewrite     string                  `yaml:"strip_path"`

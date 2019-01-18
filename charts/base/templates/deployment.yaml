@@ -18,6 +18,10 @@ spec:
       labels:
         app: {{ template "base-chart.name" . }}
         release: {{ .Release.Name }}
+{{- if .Values.annotations }}
+      annotations:
+{{ toYaml .Values.annotations | indent 8 }}
+{{- end }}
     spec:
 {{- if .Values.pullSecrets }}
       imagePullSecrets:
