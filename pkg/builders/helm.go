@@ -160,9 +160,9 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 		if err != nil {
 			return nil, err
 		}
-		applicationPort := 80
+		applicationPort := "80"
 		envVariables := []config.EnvironmentVariable{
-			{Name: "PORT", Value: string(applicationPort)},
+			{Name: "PORT", Value: applicationPort},
 			{Name: "APP_NAME", Value: appConfig.App},
 			{Name: "ENV_NAME", Value: env.Name},
 			{Name: "EXTERNAL_DOMAIN", Value: env.Domain},
@@ -180,7 +180,7 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 		deploymentAnnotations := map[string]string{}
 		if handler.MetricsPath != "" {
 			deploymentAnnotations["prometheus.io/scrape"] = "true"
-			deploymentAnnotations["prometheus.io/port"] = string(applicationPort)
+			deploymentAnnotations["prometheus.io/port"] = applicationPort
 			deploymentAnnotations["prometheus.io/path"] = handler.MetricsPath
 		}
 		dockerOptions, ok := env.HandlerOptions[name]
