@@ -94,7 +94,10 @@ func BuildAndPush(options BuildOptions, w io.Writer) (*BuildAndPushResult, error
 	if err != nil {
 		return nil, err
 	}
-	//err = PushImage(newTag, options.Auth, options.Client, w)
+	err = PushImage(newTag, options.Auth, options.Client, w)
+	if err != nil {
+		return nil, err
+	}
 	return &BuildAndPushResult{
 		Inspect:    &inspect,
 		Tag:        newTag,
