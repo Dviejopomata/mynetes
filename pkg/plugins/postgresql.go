@@ -81,6 +81,7 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer db.Close()
 		for _, extension := range pgOptions.Extensions {
 			createExtensionSql := fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %s;", extension)
 			_, err = db.Query(createExtensionSql)
@@ -146,10 +147,10 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 	}
 	connStringPg := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", pgConfig.Host, pgConfig.Port, pgConfig.User, pgConfig.Password, response.Database)
 	currDb, err := sql.Open("postgres", connStringPg)
-
 	if err != nil {
 		return nil, err
 	}
+	defer currDb.Close()
 	for _, extension := range pgOptions.Extensions {
 		createExtensionSql := fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %s;", extension)
 		_, err = currDb.Query(createExtensionSql)
