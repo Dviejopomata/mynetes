@@ -84,10 +84,11 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 		defer db.Close()
 		for _, extension := range pgOptions.Extensions {
 			createExtensionSql := fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %s;", extension)
-			_, err = db.Query(createExtensionSql)
+			q, err := db.Query(createExtensionSql)
 			if err != nil {
 				return nil, err
 			}
+			q.Close()
 		}
 		return response, nil
 	}
@@ -126,10 +127,11 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 	if !userRows.Next() {
 		// user doesnt exist
 		createUserSql := fmt.Sprintf("CREATE USER %s WITH ENCRYPTED PASSWORD '%s';", options.User, options.Password)
-		_, err = db.Query(createUserSql)
+		q, err := db.Query(createUserSql)
 		if err != nil && !strings.Contains(err.Error(), "already exists") {
 			return nil, err
 		}
+		q.Close()
 	}
 
 	grantUserDatabase := fmt.Sprintf("GRANT ALL PRIVILEGES ON DATABASE %s TO %s;", options.Database, options.User)
