@@ -193,6 +193,18 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 		if handler.Domain != "" {
 			domain = handler.Domain
 		}
+		var ingresses []map[string]interface{}
+		if len(handler.Domains) > 0 {
+			for _, domainItem := range handler.Domains {
+				ingresses = append(ingresses, map[string]interface{}{
+					"annotations": annotations,
+					"enabled":     true,
+					"hosts":       []string{domainItem},
+					"path":        handler.URL,
+				})
+			}
+
+		}
 		handlerChart := &Chart{
 			Chart: basicChart,
 			Name:  fmt.Sprintf("%s-%s-%s", appConfig.App, env.Name, name),
@@ -230,6 +242,7 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 					"hosts":       []string{domain},
 					"path":        handler.URL,
 				},
+				"ingresses": ingresses,
 			},
 		}
 		chart.AddChart(handlerChart)

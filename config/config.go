@@ -86,6 +86,7 @@ type Handler struct {
 	NetworkMode string                  `yaml:"network_mode"`
 	File        string                  `yaml:"file,omitempty"`
 	Domain      string                  `yaml:"domain,omitempty"`
+	Domains     []string                `yaml:"domains,omitempty"`
 	MetricsPath string                  `yaml:"metrics_path,omitempty"`
 	URL         string                  `yaml:"url,omitempty"`
 	Liveness    *string                 `yaml:"liveness,omitempty"`

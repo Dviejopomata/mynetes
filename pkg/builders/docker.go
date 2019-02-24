@@ -5,6 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/Dviejopomata/mynetes/config"
+	"github.com/Dviejopomata/mynetes/log"
+	"github.com/Dviejopomata/mynetes/pkg/utils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/builder/dockerignore"
 	"github.com/docker/docker/client"
@@ -15,9 +18,6 @@ import (
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
-	"github.com/Dviejopomata/mynetes/config"
-	"github.com/Dviejopomata/mynetes/log"
-	"github.com/Dviejopomata/mynetes/pkg/utils"
 	"golang.org/x/crypto/ssh"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -110,6 +110,7 @@ type BuildResponse struct {
 	ImageBuildResponse *types.ImageBuildResponse
 	BuildOptions       types.ImageBuildOptions
 	Version            string
+	Repository         string
 }
 
 func Build(options BuildOptions) (*BuildResponse, error) {
@@ -166,8 +167,10 @@ func Build(options BuildOptions) (*BuildResponse, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to build image")
 	}
+	repository := strings.Replace(tag, fmt.Sprintf(":%s", version), "", 1)
 	return &BuildResponse{
 		ImageBuildResponse: &response,
+		Repository:         repository,
 		BuildOptions:       buildOptions,
 		Version:            version,
 	}, nil
