@@ -29,6 +29,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type OutStream struct {
@@ -56,6 +57,7 @@ type BuildAndPushResult struct {
 	Tag        string
 	Version    string
 	Repository string
+	RepoInfo   *RepoInfo
 }
 
 func BuildAndPush(options BuildOptions, w io.Writer) (*BuildAndPushResult, error) {
@@ -63,6 +65,7 @@ func BuildAndPush(options BuildOptions, w io.Writer) (*BuildAndPushResult, error
 	if err != nil {
 		return nil, err
 	}
+
 	aux := func(msg jsonmessage.JSONMessage) {
 		var result types.BuildResult
 		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
@@ -103,6 +106,7 @@ func BuildAndPush(options BuildOptions, w io.Writer) (*BuildAndPushResult, error
 		Tag:        newTag,
 		Version:    finalVersion,
 		Repository: repository,
+		RepoInfo:   response.RepoInfo,
 	}, err
 }
 
@@ -111,17 +115,23 @@ type BuildResponse struct {
 	BuildOptions       types.ImageBuildOptions
 	Version            string
 	Repository         string
+	RepoInfo           *RepoInfo
 }
 
 func Build(options BuildOptions) (*BuildResponse, error) {
 	var contextDir string
 	var err error
+	var repoInfo *RepoInfo
 	switch {
 	case isLocalDir(options.Environment.Repository):
 		contextDir = options.Environment.Repository
 	case urlutil.IsGitURL(options.Environment.Repository):
-		contextDir, err = cloneRepo(options.Environment.Repository)
+		repoInfo, err = cloneRepo(options.Environment.Repository)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Failed to clone the repository")
+		}
 		defer os.RemoveAll(contextDir)
+		contextDir = repoInfo.Directory
 	}
 	// if file is in subfolder, the context should be in the subfolder
 	subfolder := filepath.Dir(options.Handler.File)
@@ -129,9 +139,6 @@ func Build(options BuildOptions) (*BuildResponse, error) {
 		contextDir = filepath.Join(contextDir, subfolder)
 	}
 
-	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to clone the repository")
-	}
 	log.Printf("Repository cloned to %s", contextDir)
 	excludes, err := GetDockerIgnore(contextDir)
 	if err != nil {
@@ -173,6 +180,7 @@ func Build(options BuildOptions) (*BuildResponse, error) {
 		Repository:         repository,
 		BuildOptions:       buildOptions,
 		Version:            version,
+		RepoInfo:           repoInfo,
 	}, nil
 }
 func GetDockerIgnore(contextDir string) ([]string, error) {
@@ -261,19 +269,28 @@ func getSshKeyAuth(privateSshKeyFile string) (transport.AuthMethod, error) {
 	return auth, nil
 }
 
-func cloneRepo(url string) (string, error) {
+type CommitInfo struct {
+	Hash string
+	Date time.Time
+}
+type RepoInfo struct {
+	Directory  string
+	CommitInfo CommitInfo
+}
+
+func cloneRepo(url string) (*RepoInfo, error) {
 	repo, err := parseRemoteURL(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	directory, err := ioutil.TempDir("", "docker-build-git")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	pkFile := filepath.Join(utils.GetSshDirectory(), getHostByGitUrl(url))
 	auth, err := getSshKeyAuth(pkFile)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	r, err := git.PlainClone(directory, false, &git.CloneOptions{
 		URL:               url,
@@ -281,43 +298,53 @@ func cloneRepo(url string) (string, error) {
 		Auth:              auth,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// ... retrieving the branch being pointed by HEAD
 	ref, err := r.Head()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+
 	// ... retrieving the commit object
 	_, err = r.CommitObject(ref.Hash())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	c, err := r.CommitObject(ref.Hash())
+
 	w, err := r.Worktree()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	b := plumbing.ReferenceName(fmt.Sprintf("refs/remotes/origin/%s", repo.ref))
 	remoteRef, err := r.Reference(b, true)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	newRef := plumbing.NewHashReference("refs/heads/newbranch", remoteRef.Hash())
 
 	err = r.Storer.SetReference(newRef)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-
 	err = w.Checkout(&git.CheckoutOptions{
 		Branch: newRef.Name(),
 		Create: false,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return directory, nil
+	commitTime := c.Committer.When
+	commitHash := ref.Hash().String()
+	return &RepoInfo{
+		Directory: directory,
+		CommitInfo: CommitInfo{
+			Date: commitTime,
+			Hash: commitHash,
+		},
+	}, nil
 }
 func getHostByGitUrl(url string) string {
 	uri := strings.Replace(url, "git@", "", 1)

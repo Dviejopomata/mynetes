@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"time"
 )
 
 type HelmOptions struct {
@@ -166,8 +167,19 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 			{Name: "APP_NAME", Value: appConfig.App},
 			{Name: "ENV_NAME", Value: env.Name},
 			{Name: "EXTERNAL_DOMAIN", Value: env.Domain},
+			{Name: "DEPLOY_DATE", Value: time.Now().Format(time.RFC3339)},
 		}
 		envVariables = append(envVariables, env.EnvVars...)
+		if imageInspect.RepoInfo != nil {
+			envVariables = append(envVariables, config.EnvironmentVariable{
+				Name:  "COMMIT_HASH",
+				Value: imageInspect.RepoInfo.CommitInfo.Hash,
+			})
+			envVariables = append(envVariables, config.EnvironmentVariable{
+				Name:  "COMMIT_DATE",
+				Value: imageInspect.RepoInfo.CommitInfo.Date.Format(time.RFC3339),
+			})
+		}
 		livenessPath := ""
 		livenessEnabled := handler.Liveness != nil && *handler.Liveness != ""
 		if livenessEnabled {
