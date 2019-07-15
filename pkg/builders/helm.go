@@ -194,8 +194,14 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 			domain = handler.Domain
 		}
 		var ingresses []map[string]interface{}
-		if len(handler.Domains) > 0 {
-			for _, domainItem := range handler.Domains {
+		var domains []string
+		if len(env.Domains) > 0 {
+			domains = env.Domains
+		} else if len(handler.Domains) > 0 {
+			domains = handler.Domains
+		}
+		if len(domains) > 0 {
+			for _, domainItem := range domains {
 				ingresses = append(ingresses, map[string]interface{}{
 					"annotations": annotations,
 					"enabled":     true,
@@ -203,7 +209,6 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 					"path":        handler.URL,
 				})
 			}
-
 		}
 		handlerChart := &Chart{
 			Chart: basicChart,

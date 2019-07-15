@@ -107,6 +107,7 @@ type EnvironmentVariable struct {
 type Environment struct {
 	Name           string                            `yaml:"name,omitempty"`
 	Domain         string                            `yaml:"domain,omitempty"`
+	Domains        []string                          `yaml:"domains,omitempty"`
 	Repository     string                            `yaml:"repository,omitempty"`
 	Config         map[string]interface{}            `yaml:"config,omitempty"`
 	EnvVars        []EnvironmentVariable             `yaml:"env_variables,omitempty"`
