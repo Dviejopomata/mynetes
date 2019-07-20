@@ -212,10 +212,10 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 		}
 		var ingresses []map[string]interface{}
 		var domains []string
-		if len(env.Domains) > 0 {
-			domains = env.Domains
-		} else if len(handler.Domains) > 0 {
+		if len(handler.Domains) > 0 {
 			domains = handler.Domains
+		} else if len(env.Domains) > 0 {
+			domains = env.Domains
 		}
 		if len(domains) > 0 {
 			for _, domainItem := range domains {
@@ -246,11 +246,11 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 				"ports": &map[string]interface{}{
 					"http": servicePort,
 				},
-				"isLivenessDisabled": !livenessEnabled,
-				"liveness":           livenessPath,
+				"isLivenessDisabled":  !livenessEnabled,
+				"liveness":            livenessPath,
 				"isReadinessDisabled": !readinessEnabled,
 				"readiness":           readinessPath,
-				"env":                envVariables,
+				"env":                 envVariables,
 				"image": map[string]interface{}{
 					"repository": imageInspect.Repository,
 					"tag":        imageInspect.Version,
