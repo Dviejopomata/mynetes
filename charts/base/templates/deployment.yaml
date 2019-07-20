@@ -57,9 +57,12 @@ spec:
             httpGet:
               path: {{ default "/" .Values.liveness }}
               port: http
+{{- end }}
+{{- if .Values.isReadinessDisabled }}
+{{- else }}
           readinessProbe:
             httpGet:
-              path: {{ default "/" .Values.liveness }}
+              path: {{ default "/" .Values.readiness }}
               port: http
 {{- end }}
           resources:

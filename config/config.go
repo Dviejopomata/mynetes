@@ -90,6 +90,7 @@ type Handler struct {
 	MetricsPath string                  `yaml:"metrics_path,omitempty"`
 	URL         string                  `yaml:"url,omitempty"`
 	Liveness    *string                 `yaml:"liveness,omitempty"`
+	Readiness   *string                 `yaml:"readiness,omitempty"`
 	Rewrite     string                  `yaml:"strip_path"`
 	Ports       map[string]string       `yaml:"ports"`
 	Command     []string                `yaml:"command"`

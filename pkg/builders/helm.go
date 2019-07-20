@@ -185,6 +185,11 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 		if livenessEnabled {
 			livenessPath = *handler.Liveness
 		}
+		readinessPath := ""
+		readinessEnabled := handler.Readiness != nil && *handler.Readiness != ""
+		if readinessEnabled {
+			readinessPath = *handler.Readiness
+		}
 		annotations := map[string]string{}
 		if handler.Rewrite != "" {
 			annotations["nginx.ingress.kubernetes.io/rewrite-target"] = handler.Rewrite
@@ -243,6 +248,8 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 				},
 				"isLivenessDisabled": !livenessEnabled,
 				"liveness":           livenessPath,
+				"isReadinessDisabled": !readinessEnabled,
+				"readiness":           readinessPath,
 				"env":                envVariables,
 				"image": map[string]interface{}{
 					"repository": imageInspect.Repository,
