@@ -132,7 +132,7 @@ to quickly create a Cobra application.`,
 			if storageDir == "" {
 				storageDir = defaultStorageDir
 			}
-			s3Client, err := minio.New(serverYaml.Minio.Endpoint, serverYaml.Minio.Accesskey, serverYaml.Minio.Secretkey, true)
+			s3Client, err := minio.New(serverYaml.Minio.Endpoint, serverYaml.Minio.Accesskey, serverYaml.Minio.Secretkey, serverYaml.Minio.Ssl)
 			if err != nil {
 				return errors.Wrapf(err, "Failed to init minio client")
 			}
