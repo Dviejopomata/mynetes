@@ -162,7 +162,10 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 			return nil, err
 		}
 		applicationPort := "80"
-		domain := env.Domain
+		var domain string
+		if env.Domain != "" {
+			domain = env.Domain
+		}
 		if handler.Domain != "" {
 			domain = handler.Domain
 		}
@@ -229,6 +232,38 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 				})
 			}
 		}
+		chartValues := map[string]interface{}{
+			"annotations":  deploymentAnnotations,
+			"pullSecrets":  []string{"registry"},
+			"replicaCount": replicas,
+			"ports": &map[string]interface{}{
+				"http": servicePort,
+			},
+			"isLivenessDisabled":  !livenessEnabled,
+			"liveness":            livenessPath,
+			"isReadinessDisabled": !readinessEnabled,
+			"readiness":           readinessPath,
+			"env":                 envVariables,
+			"image": map[string]interface{}{
+				"repository": imageInspect.Repository,
+				"tag":        imageInspect.Version,
+				"pullPolicy": "IfNotPresent",
+			},
+			"service": map[string]interface{}{
+				"type": "ClusterIP",
+				"port": servicePort,
+			},
+
+			"ingresses": ingresses,
+		}
+		if domain != "" {
+			chartValues["ingress"] = map[string]interface{}{
+				"annotations": annotations,
+				"enabled":     true,
+				"hosts":       []string{domain},
+				"path":        handler.URL,
+			}
+		}
 		handlerChart := &Chart{
 			Chart: basicChart,
 			Name:  fmt.Sprintf("%s-%s-%s", appConfig.App, env.Name, name),
@@ -241,35 +276,7 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 			},
 			Dependencies: []*Dependency{},
 			Charts:       []*Chart{},
-			Values: map[string]interface{}{
-				"annotations":  deploymentAnnotations,
-				"pullSecrets":  []string{"registry"},
-				"replicaCount": replicas,
-				"ports": &map[string]interface{}{
-					"http": servicePort,
-				},
-				"isLivenessDisabled":  !livenessEnabled,
-				"liveness":            livenessPath,
-				"isReadinessDisabled": !readinessEnabled,
-				"readiness":           readinessPath,
-				"env":                 envVariables,
-				"image": map[string]interface{}{
-					"repository": imageInspect.Repository,
-					"tag":        imageInspect.Version,
-					"pullPolicy": "IfNotPresent",
-				},
-				"service": map[string]interface{}{
-					"type": "ClusterIP",
-					"port": servicePort,
-				},
-				"ingress": map[string]interface{}{
-					"annotations": annotations,
-					"enabled":     true,
-					"hosts":       []string{domain},
-					"path":        handler.URL,
-				},
-				"ingresses": ingresses,
-			},
+			Values:       chartValues,
 		}
 		chart.AddChart(handlerChart)
 	}
