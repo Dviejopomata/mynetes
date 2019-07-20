@@ -162,11 +162,16 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 			return nil, err
 		}
 		applicationPort := "80"
+		domain := env.Domain
+		if handler.Domain != "" {
+			domain = handler.Domain
+		}
+
 		envVariables := []config.EnvironmentVariable{
 			{Name: "PORT", Value: applicationPort},
 			{Name: "APP_NAME", Value: appConfig.App},
 			{Name: "ENV_NAME", Value: env.Name},
-			{Name: "EXTERNAL_DOMAIN", Value: env.Domain},
+			{Name: "EXTERNAL_DOMAIN", Value: domain},
 			{Name: "DEPLOY_DATE", Value: time.Now().Format(time.RFC3339)},
 		}
 		envVariables = append(envVariables, env.EnvVars...)
@@ -206,10 +211,7 @@ func DeployK8s(options HelmOptions) (*HelmResponse, error) {
 				return nil, errors.Wrapf(err, "Failed to merge handler options %s", name)
 			}
 		}
-		domain := env.Domain
-		if handler.Domain != "" {
-			domain = handler.Domain
-		}
+
 		var ingresses []map[string]interface{}
 		var domains []string
 		if len(handler.Domains) > 0 {
