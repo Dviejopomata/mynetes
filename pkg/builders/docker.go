@@ -211,8 +211,14 @@ func PushImage(tag string, authConfig types.AuthConfig, dockerCli *client.Client
 	if err != nil {
 		return err
 	}
-
-	err = jsonmessage.DisplayJSONMessagesToStream(res, &OutStream{Writer: w}, nil)
+	aux := func(msg jsonmessage.JSONMessage) {
+		var result types.BuildResult
+		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
+			log.Fatalf("Failed to parse aux message: %s", err)
+		}
+	}
+	fd, isTerminal := term.GetFdInfo(w)
+	err = jsonmessage.DisplayJSONMessagesStream(res, w, fd, isTerminal, aux)
 	if err != nil {
 		return err
 	}
