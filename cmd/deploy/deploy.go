@@ -203,7 +203,7 @@ to quickly create a Cobra application.`,
 		},
 	}
 	persistentFlags := deployCmd.PersistentFlags()
-	persistentFlags.StringVar(&o.DeployUri, "deploy-uri", "http://192.168.1.8:7003", "Url to deploy")
+	persistentFlags.StringVar(&o.DeployUri, "deploy-uri", "http://192.168.1.8:7005", "Url to deploy")
 	persistentFlags.StringVar(&o.Env, "env", "", "Environment to deploy")
 	persistentFlags.StringVarP(&o.Config, "config", "c", "", "A help for foo")
 	persistentFlags.BoolVar(&o.DynamicEnv, "dynamic-env", false, "Create the environment if not exists")
