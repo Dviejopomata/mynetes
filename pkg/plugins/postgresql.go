@@ -154,7 +154,7 @@ func (p postgresqlPlugin) Provision(o ProvisionOptions) (interface{}, error) {
 	}
 	defer currDb.Close()
 	for _, extension := range pgOptions.Extensions {
-		createExtensionSql := fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %s;", extension)
+		createExtensionSql := fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS \"%s\";", extension)
 		_, err = currDb.Query(createExtensionSql)
 		if err != nil {
 			return nil, err
